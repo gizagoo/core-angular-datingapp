@@ -1,3 +1,6 @@
+This is an excercise from the UDemy course "Build an app with ASPNET Core and Angular from Scratch"
+
+
 # DatingApp.SPA
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.6.3.
