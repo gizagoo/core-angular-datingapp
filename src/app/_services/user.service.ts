@@ -8,6 +8,8 @@ import 'rxjs/add/observable/throw';
 import { Observable } from 'rxjs/Observable';
 import { AuthHttp } from 'angular2-jwt';
 import { PaginatedResult } from '../_models/pagination';
+import { Message } from '../_models/message';
+import { post } from 'selenium-webdriver/http';
 
 @Injectable()
 export class UserService {
@@ -76,6 +78,50 @@ deletePhoto(userId: number, id: number) {
 sendLike(userId: number, recipientId: number) {
     return this.authHttp.post(this.baseUrl + 'users/' + userId + '/like/' + recipientId, {})
         .catch(this.handleError);
+}
+
+getMessages(id: number, page?: number, itemsPerPage?: number, messageContainer?: string) {
+    console.log('In getMessages');
+    const paginatedResult: PaginatedResult<Message[]> = new PaginatedResult<Message[]>();
+    let qString = '?MessageContainer=' + messageContainer + '&';
+
+    if (page != null && itemsPerPage != null) {
+        qString += 'pageNumber=' + page + '&pageSize=' + itemsPerPage;
+    }
+
+    console.log('Calling ' + this.baseUrl + 'users/' + id + '/messages' + qString);
+    return this.authHttp.get(this.baseUrl + 'users/' + id + '/messages' + qString)
+        .map((response: Response) => {
+            paginatedResult.result = response.json();
+
+            if (response.headers.get('Pagination') != null) {
+                console.log('Got Pagination');
+                paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
+            }
+
+            return paginatedResult;
+        }).catch (this.handleError);
+}
+
+getMessageThread(id: number, recipientId: number) {
+    return this.authHttp.get(this.baseUrl + 'users/' + id + '/messages/thread/' + recipientId).map((response: Response) => {
+        return response.json();
+    }).catch(this.handleError);
+}
+
+sendmessage(id: number, message: Message) {
+    return this.authHttp.post(this.baseUrl + 'users/' + id + '/messages', message).map((response: Response) => {
+        return response.json();
+    }).catch(this.handleError);
+}
+
+deleteMessage(id: number, userId: number) {
+    return this.authHttp.post(this.baseUrl + 'users/' + userId + '/messages/' + id, {})
+        .catch(this.handleError);
+}
+
+markAsRead(userId: number, messageId: number) {
+    return this.authHttp.post(this.baseUrl + 'users/' + userId + '/messages/' + messageId + '/read', {}).subscribe();
 }
 
 private handleError(error: any) {
